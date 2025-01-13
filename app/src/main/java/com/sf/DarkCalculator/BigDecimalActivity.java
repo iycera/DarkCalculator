@@ -3,28 +3,31 @@ package com.sf.DarkCalculator;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.view.View;
-import android.widget.EditText;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.snackbar.Snackbar;
+import com.sf.DarkCalculator.databinding.ActivityBigDecimalBinding;
 
 import java.math.BigDecimal;
 
-public class BigDecimalActivity extends BaseActivity implements View.OnClickListener {
+public class BigDecimalActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private EditText edit1;
-    private EditText edit2;
+    private ActivityBigDecimalBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_big_decimal);
+        binding = ActivityBigDecimalBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        edit1 = (EditText) findViewById(R.id.edit1_big);
-        edit2 = (EditText) findViewById(R.id.edit2_big);
-        findViewById(R.id.button_add).setOnClickListener(this);
-        findViewById(R.id.button_sub).setOnClickListener(this);
-        findViewById(R.id.button_mul).setOnClickListener(this);
-        findViewById(R.id.button_div).setOnClickListener(this);
+        binding.edit1Big.setOnClickListener(this);
+        binding.edit2Big.setOnClickListener(this);
+        binding.buttonAdd.setOnClickListener(this);
+        binding.buttonSub.setOnClickListener(this);
+        binding.buttonMul.setOnClickListener(this);
+        binding.buttonDiv.setOnClickListener(this);
     }
 
     public static void actionStart(Context context) {
@@ -33,31 +36,39 @@ public class BigDecimalActivity extends BaseActivity implements View.OnClickList
 
     public void onClick(View v) {
         BigDecimal b1, b2;
-        String s1 = edit1.getText().toString().length() == 0 ? "0" : edit1.getText().toString();
-        String s2 = edit2.getText().toString().length() == 0 ? "0" : edit2.getText().toString();
-        if (s1.indexOf("..") != -1 || s2.indexOf("..") != -1) {
-            Snackbar.make(v, "小数点不能大于一个", Snackbar.LENGTH_SHORT).show();
+        String s1 = binding.edit1Big.getText().toString().trim();
+        String s2 = binding.edit2Big.getText().toString().trim();
+
+        // 清理输入字符串，移除无效字符
+        s1 = s1.replaceAll("[^\\d.]", ""); // 只保留数字和小数点
+        s2 = s2.replaceAll("[^\\d.]", ""); // 只保留数字和小数点
+
+        // 检查输入是否有效
+        if (s1.isEmpty() || s2.isEmpty()) {
+            Snackbar.make(v, "请输入有效的数字", Snackbar.LENGTH_SHORT).show();
             return;
         }
+
+        try {
+            b1 = new BigDecimal(s1);
+            b2 = new BigDecimal(s2);
+        } catch (NumberFormatException e) {
+            Snackbar.make(v, "输入格式不正确", Snackbar.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 继续进行计算
         switch (v.getId()) {
             case R.id.button_add:
-                b1 = new BigDecimal(s1);
-                b2 = new BigDecimal(s2);
                 ResultsActivity.actionStart(this, b1.add(b2).toString());
                 break;
             case R.id.button_sub:
-                b1 = new BigDecimal(s1);
-                b2 = new BigDecimal(s2);
                 ResultsActivity.actionStart(this, b1.subtract(b2).toString());
                 break;
             case R.id.button_mul:
-                b1 = new BigDecimal(s1);
-                b2 = new BigDecimal(s2);
                 ResultsActivity.actionStart(this, b1.multiply(b2).toString());
                 break;
             case R.id.button_div:
-                b1 = new BigDecimal(s1);
-                b2 = new BigDecimal(s2);
                 if (b2.doubleValue() == 0) {
                     Snackbar.make(v, "除数不能为零", Snackbar.LENGTH_SHORT).show();
                     break;
@@ -65,5 +76,11 @@ public class BigDecimalActivity extends BaseActivity implements View.OnClickList
                 ResultsActivity.actionStart(this, b1.divide(b2, 100000, BigDecimal.ROUND_HALF_UP).toString());
                 break;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed(); // 确保调用父类方法
+        finish(); // 结束当前活动
     }
 }

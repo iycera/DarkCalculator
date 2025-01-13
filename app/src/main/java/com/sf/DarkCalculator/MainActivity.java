@@ -1,21 +1,17 @@
 package com.sf.DarkCalculator;
 
+import static com.sf.DarkCalculator.BaseActivity.preferences;
+
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +22,17 @@ import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
+import com.sf.DarkCalculator.databinding.ActivityMainBinding;
 import com.sf.ExpressionHandler.Constants;
 import com.sf.ExpressionHandler.ExpressionHandler;
 
@@ -35,7 +42,7 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends AppCompatActivity {
 
     public static MainActivity activity;
     private Context context;
@@ -46,7 +53,8 @@ public class MainActivity extends BaseActivity {
     private ViewPager drawerPager;
     private DrawerLayout drawer;
     private ArrayList<View> drawerPageList;
-    public FrameLayout delete;
+    private FrameLayout delete;
+    private SharedPreferences preferences;
 
     private static final int[] XX = {1, 3, 1, 3};
     private static final int[] YY = {6, 4, 5, 5};
@@ -100,12 +108,19 @@ public class MainActivity extends BaseActivity {
             "⑾", "⑿", "⒀",
             "⒁", "⒂", "⒃"};
 
+    private ActivityMainBinding binding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         activity = this;
         context = this;
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // 初始化 preferences
+        preferences = getSharedPreferences("your_preferences_name", MODE_PRIVATE);
+
         initToolBar();
         initEditText();
         initTextView();
@@ -120,13 +135,13 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initDelete() {
-        delete = (FrameLayout) findViewById(R.id.delete);
+        delete = binding.delete;
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Editable editable = inText.getText();
-                int index = inText.getSelectionStart();
-                int index2 = inText.getSelectionEnd();
+                Editable editable = binding.editText.getText();
+                int index = binding.editText.getSelectionStart();
+                int index2 = binding.editText.getSelectionEnd();
                 if (index == index2) {
                     if (index == 0) return;
                     editable.delete(index - 1, index);
@@ -139,14 +154,14 @@ public class MainActivity extends BaseActivity {
             @Override
             public boolean onLongClick(View v) {
                 ExpressionHandler.stop();
-                inText.setText(null);
+                binding.editText.setText(null);
                 return true;
             }
         });
     }
 
     private void initTextView() {
-        stateText = (TextView) findViewById(R.id.text_state);
+        stateText = binding.textState;
         stateText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -154,7 +169,7 @@ public class MainActivity extends BaseActivity {
                 stateText.setText(null);
             }
         });
-        outText = (TextView) findViewById(R.id.text_out);
+        outText = binding.textOut;
         outText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -173,8 +188,8 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initDrawer() {
-        drawer = (DrawerLayout) findViewById(R.id.drawer_main);
-        findViewById(R.id.drawer_right).setOnClickListener(new View.OnClickListener() {
+        drawer = binding.drawerMain;
+        drawer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 drawer.openDrawer(GravityCompat.END);
@@ -183,7 +198,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initTabs() {
-        TabLayout tabs = (TabLayout) findViewById(R.id.tabs_main);
+        TabLayout tabs = binding.tabsMain;
         tabs.setupWithViewPager(drawerPager);
         tabs.getTabAt(0).setText("函数");
         tabs.getTabAt(1).setText("常数");
@@ -196,9 +211,10 @@ public class MainActivity extends BaseActivity {
             drawerPageList.add(gridView);
         }
 
-        drawerPager = (ViewPager) findViewById(R.id.viewPager_drawer);
+        drawerPager = binding.viewPagerDrawer;
         MainPagerAdapter drawerPagerAdapter = new MainPagerAdapter(drawerPageList);
         drawerPager.setAdapter(drawerPagerAdapter);
+
         drawerPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -224,7 +240,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initSideBar() {
-        final GridView sideBar = (GridView) findViewById(R.id.sideBar);
+        final GridView sideBar = binding.sideBar;
         sideBar.setNumColumns(XX[0]);
         sideBar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -253,7 +269,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initNumeric() {
-        GridView numericBar = (GridView) findViewById(R.id.bar_numeric);
+        GridView numericBar = binding.barNumeric;
         numericBar.setNumColumns(XX[1]);
         numericBar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -285,7 +301,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initOperator() {
-        GridView operatorBar = (GridView) findViewById(R.id.bar_operator);
+        GridView operatorBar = binding.barOperator;
         operatorBar.setNumColumns(XX[2]);
         operatorBar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -425,7 +441,7 @@ public class MainActivity extends BaseActivity {
     private String rootValue;
 
     private void initEditText() {
-        inText = (EditText) findViewById(R.id.editText);
+        inText = binding.editText;
         AutofitHelper.create(inText).setMinTextSize(28).setMaxLines(1);
         inText.requestFocus();
         inText.requestFocusFromTouch();
@@ -481,7 +497,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initToolBar() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = binding.toolbar;
         setSupportActionBar(toolbar);
         setTitle(null);
         toolbar.setSubtitle("科学计算");
@@ -568,12 +584,15 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+        Log.d("MainActivity", "物理键返回");
         if (drawer.isDrawerOpen(GravityCompat.END)) {
+            Log.d("MainActivity", "1是什么");
             drawerPager.setCurrentItem(0);
             drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.END);
             drawer.closeDrawer(GravityCompat.END);
             return;
         } else if (drawer.isDrawerOpen(GravityCompat.START)) {
+            Log.d("MainActivity", "物理键返回的什么");
             drawer.closeDrawer(GravityCompat.START);
             return;
         }
@@ -584,16 +603,25 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                Log.d("MainActivity", "点击三杠0");
                 if (drawer.isDrawerOpen(GravityCompat.END)) {
+                    Log.d("MainActivity", "关闭抽屉1");
                     drawerPager.setCurrentItem(0);
                     drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.END);
-                    drawer.closeDrawer(GravityCompat.END);
-                } else if (drawer.isDrawerOpen(GravityCompat.START))
+                    drawer.closeDrawer(GravityCompat.END);//关闭抽屉
+                } else if (drawer.isDrawerOpen(GravityCompat.START)) {
+                    Log.d("MainActivity", "关闭抽屉2");
                     drawer.closeDrawer(GravityCompat.START);
-                else
-                    drawer.openDrawer(GravityCompat.START);
+                } else {
+                    Log.d("MainActivity", "打开抽屉3");
+                    drawer.openDrawer(GravityCompat.START);//打开抽屉
+                }
                 break;
         }
         return true;
+    }
+
+    public FrameLayout getDelete() {
+        return delete;
     }
 }

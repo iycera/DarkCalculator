@@ -4,7 +4,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -12,9 +11,13 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.snackbar.Snackbar;
+
 import java.math.BigInteger;
 
-public class BaseConversionActivity extends BaseActivity {
+public class BaseConversionActivity extends AppCompatActivity {
 
     private EditText textIn;
     private TextView textOut;
@@ -33,12 +36,12 @@ public class BaseConversionActivity extends BaseActivity {
         initTextIn();
         initTextOut();
         initSeekBar();
-        textviewIn = (TextView) findViewById(R.id.textview_in);
-        textviewOut = (TextView) findViewById(R.id.textview_out);
+        textviewIn = findViewById(R.id.textview_in);
+        textviewOut = findViewById(R.id.textview_out);
     }
 
     private void initSeekBar() {
-        seekBar1 = (SeekBar) findViewById(R.id.seekbar1);
+        seekBar1 = findViewById(R.id.seekbar1);
         seekBar1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int p, boolean fromUser) {
@@ -63,7 +66,7 @@ public class BaseConversionActivity extends BaseActivity {
             }
         });
 
-        seekBar2 = (SeekBar) findViewById(R.id.seekbar2);
+        seekBar2 = findViewById(R.id.seekbar2);
         seekBar2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int p, boolean fromUser) {
@@ -90,20 +93,22 @@ public class BaseConversionActivity extends BaseActivity {
     }
 
     private void initTextOut() {
-        textOut = (TextView) findViewById(R.id.text_out);
+        textOut = findViewById(R.id.text_out);
         AutofitHelper.create(textOut).setMaxLines(5);
         textOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ClipboardManager cmb = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                cmb.setText(textOut.getText());
+                if (cmb != null) {
+                    cmb.setText(textOut.getText());
+                }
                 Snackbar.make(v, "已复制转换结果", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
 
     private void initTextIn() {
-        textIn = (EditText) findViewById(R.id.text_in);
+        textIn = findViewById(R.id.text_in);
         textIn.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

@@ -79,10 +79,10 @@ public class GridViewAdapter extends BaseAdapter {
 
         if (layoutId == R.layout.button_operator) {
             if (deleteParam == null)
-                deleteParam = MainActivity.activity.delete.getLayoutParams();
+                deleteParam = MainActivity.activity.getDelete().getLayoutParams();
             if (deleteParam.height != height / rows) {
                 deleteParam.height = height / rows;
-                MainActivity.activity.delete.setLayoutParams(deleteParam);
+                MainActivity.activity.getDelete().setLayoutParams(deleteParam);
             }
         }
 

@@ -4,28 +4,33 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-public class CapitalMoneyActivity extends BaseActivity {
+import androidx.appcompat.app.AppCompatActivity;
 
-    private TextView textOut;
+import com.google.android.material.snackbar.Snackbar;
+import com.sf.DarkCalculator.databinding.ActivityCapitalMoneyBinding;
+
+public class CapitalMoneyActivity extends AppCompatActivity {
+
+    private ActivityCapitalMoneyBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_capital_money);
+        binding = ActivityCapitalMoneyBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         initTextOut();
         initTextIn();
     }
 
     private void initTextOut() {
-        textOut = (TextView) findViewById(R.id.text_out);
+        TextView textOut = binding.textOut;
         AutofitHelper.create(textOut).setMaxLines(6);
         textOut.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -38,7 +43,7 @@ public class CapitalMoneyActivity extends BaseActivity {
     }
 
     private void initTextIn() {
-        EditText editIn = (EditText) findViewById(R.id.text_in);
+        EditText editIn = binding.textIn;
         AutofitHelper.create(editIn);
         editIn.addTextChangedListener(new TextWatcher() {
             @Override
@@ -50,17 +55,17 @@ public class CapitalMoneyActivity extends BaseActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String str = s.toString();
                 if (s.length() == 0 || str.equals(".")) {
-                    textOut.setText("···");
+                    binding.textOut.setText("···");
                     return;
                 }
                 int i = str.indexOf(".");
                 if (i != -1) {
                     if (str.substring(i, str.length()).length() > 7) {
-                        textOut.setText("小数点后不得超过6位");
+                        binding.textOut.setText("小数点后不得超过6位");
                         return;
                     }
                 }
-                textOut.setText(format(s.toString()));
+                binding.textOut.setText(format(s.toString()));
             }
 
             @Override
