@@ -1,7 +1,5 @@
 package com.sf.DarkCalculator;
 
-import static com.sf.DarkCalculator.BaseActivity.preferences;
-
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -24,7 +22,6 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -42,7 +39,7 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     public static MainActivity activity;
     private Context context;
@@ -391,7 +388,7 @@ public class MainActivity extends AppCompatActivity {
                     outText.setTextColor(0xffbdbdbd);
                     stateText.setText("运算结束，耗时 " + (System.currentTimeMillis() - t) + " 毫秒");
                     if (value[0].getBytes().length > 1000) {
-                        outText.setText("数值太大，请长按此处显示结果");
+                        outText.setText("数值太大，长按此处查看");
                     } else
                         outText.setText(value[0]);
                     rootValue = value[0];
@@ -422,7 +419,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         Constants.setAns(value[0]);
                         if (value[0].getBytes().length > 1000) {
-                            outText.setText("数值太大，请长按此处显示结果");
+                            outText.setText("数值太大，长按此处查看");
                             ResultsActivity.actionStart(context, value[0]);
                         } else
                             outText.setText(value[0]);
@@ -475,15 +472,15 @@ public class MainActivity extends AppCompatActivity {
                 selection = inText.getSelectionStart();
                 s.clearSpans();
 
-                for (Matcher m = Pattern.compile("x").matcher(s); m.find(); )
+                for (Matcher m = Pattern.compile("x").matcher(s); m.find(); )//粉色
                     s.setSpan(new ForegroundColorSpan(0xfff48fb1), m.start(), m.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                for (Matcher m = CONSTANS_KEYWORDS1.matcher(s); m.find(); )
+                for (Matcher m = CONSTANS_KEYWORDS1.matcher(s); m.find(); )//黄色
                     s.setSpan(new ForegroundColorSpan(0xfffff59d), m.start(), m.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                for (Matcher m = CONSTANS_KEYWORDS2.matcher(s); m.find(); )
+                for (Matcher m = CONSTANS_KEYWORDS2.matcher(s); m.find(); )//黄色
                     s.setSpan(new ForegroundColorSpan(0xfffff59d), m.start(), m.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                for (Matcher m = FUNCTIONS_KEYWORDS.matcher(s); m.find(); )
+                for (Matcher m = FUNCTIONS_KEYWORDS.matcher(s); m.find(); )//函数：绿色
                     s.setSpan(new ForegroundColorSpan(0xffa5d6a7), m.start(), m.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                for (Matcher m = Pattern.compile("[()\\-*+.,/!^=√•]").matcher(s); m.find(); )
+                for (Matcher m = Pattern.compile("[()\\-*+.,/!^=√•]").matcher(s); m.find(); )//蓝色#3f51b5
                     s.setSpan(new ForegroundColorSpan(0xff81d4fa), m.start(), m.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 modified = false;
                 inText.setText(s);

@@ -5,14 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.snackbar.Snackbar;
 import com.sf.DarkCalculator.databinding.ActivityBigDecimalBinding;
 
 import java.math.BigDecimal;
 
-public class BigDecimalActivity extends AppCompatActivity implements View.OnClickListener {
+public class BigDecimalActivity extends BaseActivity implements View.OnClickListener {
 
     private ActivityBigDecimalBinding binding;
 

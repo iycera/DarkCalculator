@@ -11,13 +11,11 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.snackbar.Snackbar;
 
 import java.math.BigInteger;
 
-public class BaseConversionActivity extends AppCompatActivity {
+public class BaseConversionActivity extends BaseActivity {
 
     private EditText textIn;
     private TextView textOut;

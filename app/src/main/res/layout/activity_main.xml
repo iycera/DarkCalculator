@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginBottom="40dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:background="@null"
             android:fontFamily="sans-serif-light"
             android:gravity="center_vertical|end"

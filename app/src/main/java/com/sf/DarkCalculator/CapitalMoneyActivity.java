@@ -9,13 +9,10 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.snackbar.Snackbar;
 import com.sf.DarkCalculator.databinding.ActivityCapitalMoneyBinding;
 
-public class CapitalMoneyActivity extends AppCompatActivity {
+public class CapitalMoneyActivity extends BaseActivity {
 
     private ActivityCapitalMoneyBinding binding;
 
@@ -104,12 +101,21 @@ public class CapitalMoneyActivity extends AppCompatActivity {
         }
         StringBuffer sb = new StringBuffer();
 
+
         for (int i = 0; i < integerPart.length(); i++) {
             int number = Integer
                     .parseInt(String.valueOf(integerPart.charAt(i)));
-            sb.append(cnNumbers[number]);
-            sb.append(units[integerPart.length() + 5 - i]);
+            if(number!=0||i==0&&number==0&&integerPart.length()==1){//不为零，或单独零
+                sb.append(cnNumbers[number]);
+            }else if(i>1){//十位起全加
+                sb.append(cnNumbers[number]);
+            }
+
+            if (number != 0) {//为零时不添加单位
+                sb.append(units[integerPart.length() + 5 - i]);
+            }
         }
+        
 
         if (floatPart.length() >= 1) {
             for (int i = 0; i < floatPart.length(); i++) {
@@ -117,13 +123,15 @@ public class CapitalMoneyActivity extends AppCompatActivity {
                         .charAt(i)));
                 sb.append(cnNumbers[number]);
                 if (i < 6) {
-                    sb.append(units[5 - i]);
+                    sb.append("-");
+                    //sb.append(units[5 - i]);
                 }
             }
         } else {
-            sb.append('整');
+            //sb.append('整');
         }
-        return sb.toString();
+
+        return sb.toString().replaceAll("零+","零").replaceAll("-","");//去掉多余的零;
     }
 
 

@@ -3,12 +3,9 @@ package com.sf.DarkCalculator;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.sf.DarkCalculator.databinding.ActivityResultsBinding;
 
-public class ResultsActivity extends AppCompatActivity {
+public class ResultsActivity extends BaseActivity {
     private ActivityResultsBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
