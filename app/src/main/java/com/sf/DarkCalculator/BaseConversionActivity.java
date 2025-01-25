@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -132,5 +133,16 @@ public class BaseConversionActivity extends BaseActivity {
 
     public static void actionStart(Context context) {
         context.startActivity(new Intent(context, BaseConversionActivity.class));
+    }
+
+    protected void onResume() {
+        super.onResume();
+        textIn.post(() -> {
+            textIn.requestFocus(); // 确保输入框获得焦点
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(textIn, InputMethodManager.SHOW_IMPLICIT); // 显示输入法
+            }
+        });
     }
 }

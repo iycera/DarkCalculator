@@ -3,30 +3,34 @@ package com.sf.DarkCalculator;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import com.sf.DarkCalculator.databinding.ActivityResultsBinding;
+import android.widget.TextView;
 
-public class ResultsActivity extends BaseActivity {
-    private ActivityResultsBinding binding;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class ResultsActivity extends AppCompatActivity {
+
+    private TextView resultTextView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_results);
-        // 使用 ViewBinding 代替 findViewById
-        binding = ActivityResultsBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.activity_results); // 确保布局文件正确
 
-        // 确保调用的是 AppCompatActivity 的 getSupportActionBar
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        resultTextView = findViewById(R.id.text_results); // 获取结果显示的 TextView
 
-        // 从 Intent 获取数据并显示
-        String results = getIntent().getStringExtra("results");
-        binding.textResults.setText(results);
+        // 获取传递过来的数据
+        Intent intent = getIntent();
+        String resultMessage = intent.getStringExtra("resultMessage");
+
+        // 显示结果
+        if (resultMessage != null) {
+            resultTextView.setText(resultMessage);
+        }
     }
 
-    public static void actionStart(Context context, String results) {
+    public static void actionStart(Context context, String resultMessage) {
         Intent intent = new Intent(context, ResultsActivity.class);
-        intent.putExtra("results", results);
+        intent.putExtra("resultMessage", resultMessage); // 传递结果信息
         context.startActivity(intent);
-
     }
 }

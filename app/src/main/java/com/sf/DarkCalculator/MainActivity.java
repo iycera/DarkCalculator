@@ -1,9 +1,15 @@
 package com.sf.DarkCalculator;
 
+import android.app.Activity;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.TextUtils;
@@ -34,6 +40,8 @@ import com.sf.ExpressionHandler.Constants;
 import com.sf.ExpressionHandler.ExpressionHandler;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -53,28 +61,28 @@ public class MainActivity extends BaseActivity {
     private FrameLayout delete;
     private SharedPreferences preferences;
 
-    private static final int[] XX = {1, 3, 1, 3};
-    private static final int[] YY = {6, 4, 5, 5};
+    private int[] XX = {1, 3, 1, 3};//列数：
+    private int[] YY = {6, 5, 6, 5};//行数：[0]切换大数、进制、大写汉字的侧边栏,[1]数字键,[2]运算符，[3]函数、常数
 
-    private static final String[] OPERATOR = {"÷", "×", "-", "+", "%", ",", "i"};
-    private static final String[] OPERATOR_VICE = {"√", "^", "!", "()", "°", "∞", "x"};
+    private static final String[] OPERATOR = {"÷", "×", "－", "＋", "%", ",", "i"};
+    private static final String[] OPERATOR_VICE = {"√", "^", "()", "!", "°", "∞", "x"};
 
     private static final String[][] BUTTON = {
-            {"sqrt", "cbrt", "root", "rand", "randInt", "abs", "lg", "ln", "log",
+            {"sqrt", "cbrt", "root", "perm", "comb", "remn", "prec", "rand", "randInt", "lg", "ln", "log",
                     "min", "max", "fact", "sin", "cos", "tan", "asin", "acos",
                     "atan", "re", "im", "arg", "norm", "reg", "conj", "diff",
                     "sum", "lim", "eval", "fzero", "integ", "exp", "gcd", "lcm",
-                    "perm", "comb", "gamma", "round", "floor", "ceil", "sign",
-                    "remn", "prime", "isPrime", "prec", "base"},
+                    "gamma", "round", "floor", "ceil", "sign",
+                    "abs", "prime", "isPrime", "base"},
             {"ans", "reg", "π", "e", "F", "h", "ћ", "γ", "φ", "c",
                     "N", "R", "K", "k", "G", "Φ", "true", "false", "me", "mn", "mp"}};
 
     private static final String[][] BUTTON_VICE = {
-            {"平方根", "立方根", "开方", "随机复数", "随机整数", "绝对值", "常用对数", "自然对数", "对数",
+            {"平方根", "立方根", "开方", "排列", "组合", "取余", "输出精度", "随机复数", "随机整数", "常用对数", "自然对数", "对数",
                     "最小", "最大", "阶乘", "正弦", "余弦", "正切", "反正弦", "反余弦", "反正切", "实部",
                     "虚部", "辐角", "模长", "寄存", "共轭复数", "导函数", "累加求和", "极限", "求值",
-                    "函数零点", "定积分", "e底指数", "最大公约", "最小公倍", "排列", "组合", "伽玛函数",
-                    "四舍五入", "向下取整", "向上取整", "取正负号", "取余", "质数", "判断质数", "输出精度", "输出进制"},
+                    "函数零点", "定积分", "e底指数", "最大公约", "最小公倍", "伽玛函数",
+                    "四舍五入", "向下取整", "向上取整", "取正负号", "绝对值", "质数", "判断质数", "输出进制"},
             {"上次运算", "寄存器", "圆周率", "自然底数", "法拉第", "普朗克", "约化普朗克",
                     "欧拉", "黄金分割", "光速", "阿伏伽德罗", "理想气体", "卡钦", "玻尔兹曼",
                     "万有引力", "磁通量子", "真", "假", "电子质量", "质子质量", "中子质量"}};
@@ -107,6 +115,8 @@ public class MainActivity extends BaseActivity {
 
     private ActivityMainBinding binding;
 
+    private int decimalPlaces; // 声明为成员变量
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         activity = this;
@@ -117,6 +127,20 @@ public class MainActivity extends BaseActivity {
 
         // 初始化 preferences
         preferences = getSharedPreferences("your_preferences_name", MODE_PRIVATE);
+
+        // 从 SharedPreferences 中读取小数位数
+        decimalPlaces = preferences.getInt("decimalPlaces", 10); // 默认10位
+        Log.d("MainActivity","onCreate取得小数保留 "+decimalPlaces+" 位");
+
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            XX = new int[]{1, 3, 1, 3};
+            YY = new int[]{6, 5, 7, 5};
+            Log.d("MainActivity","横向");
+        } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            XX = new int[]{1, 3, 1, 3};
+            YY = new int[]{6, 4, 5, 5};
+            Log.d("MainActivity","竖向");
+        }
 
         initToolBar();
         initEditText();
@@ -129,6 +153,7 @@ public class MainActivity extends BaseActivity {
         initNumeric();
         initOperator();
         initFunction();
+
     }
 
     private void initDelete() {
@@ -178,7 +203,8 @@ public class MainActivity extends BaseActivity {
         outText.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                ResultsActivity.actionStart(v.getContext(), rootValue);
+                String resultMessage = "initTextView小数位数: " + decimalPlaces + "\n结果: " + rootValue;
+                ResultsActivity.actionStart(v.getContext(), resultMessage);
                 return true;
             }
         });
@@ -223,8 +249,8 @@ public class MainActivity extends BaseActivity {
                     drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.END);
                     drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START);
                 } else {
-                    drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN, GravityCompat.END);
-                    drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, GravityCompat.START);
+                    drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.END);//.LOCK_MODE_LOCKED_OPEN
+                    drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START);//.LOCK_MODE_LOCKED_CLOSED,
                 }
             }
 
@@ -303,8 +329,10 @@ public class MainActivity extends BaseActivity {
         operatorBar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String str = position == 0 ? "/" : OPERATOR[position];
-                modifyInText(position == 1 ? "•" : str);
+                //String str = position == 0 ? "/" : OPERATOR[position];
+                //modifyInText(position == 1 ? "•" : str);
+                String str = OPERATOR[position];
+                modifyInText(str);
             }
         });
         operatorBar.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -414,17 +442,23 @@ public class MainActivity extends BaseActivity {
                 public void run() {
                     stateText.setText("运算结束，耗时 " + (System.currentTimeMillis() - t) + " 毫秒");
                     if (value[1].equals("true")) {
-                        outText.setTextColor(0xffff4081);
+                        outText.setTextColor(0xffff4081);                        
                         outText.setText(value[0]);
                     } else {
                         Constants.setAns(value[0]);
-                        if (value[0].getBytes().length > 1000) {
+                        rootValue = value[0];
+                        if (rootValue.getBytes().length > 1000) {
                             outText.setText("数值太大，长按此处查看");
-                            ResultsActivity.actionStart(context, value[0]);
-                        } else
-                            outText.setText(value[0]);
+                            String resultMessage = "Class Calc run小数位数: " + decimalPlaces + "\n结果: " + rootValue;
+                            ResultsActivity.actionStart(context, resultMessage);
+                        } else {
+                            try {                                
+                                outText.setText(rootValue);
+                            } catch (NumberFormatException e) {
+                                Snackbar.make(outText, "计算出错，请检查输入", Snackbar.LENGTH_SHORT).show();
+                            }
+                        }
                     }
-                    rootValue = value[0];
                     calcThread = null;
                 }
             });
@@ -480,7 +514,7 @@ public class MainActivity extends BaseActivity {
                     s.setSpan(new ForegroundColorSpan(0xfffff59d), m.start(), m.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 for (Matcher m = FUNCTIONS_KEYWORDS.matcher(s); m.find(); )//函数：绿色
                     s.setSpan(new ForegroundColorSpan(0xffa5d6a7), m.start(), m.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                for (Matcher m = Pattern.compile("[()\\-*+.,/!^=√•]").matcher(s); m.find(); )//蓝色#3f51b5
+                for (Matcher m = Pattern.compile("[()\\-*+.,/!^=√•＋－×÷＝=]").matcher(s); m.find(); )//蓝色#3f51b5
                     s.setSpan(new ForegroundColorSpan(0xff81d4fa), m.start(), m.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 modified = false;
                 inText.setText(s);
@@ -534,8 +568,19 @@ public class MainActivity extends BaseActivity {
             imm.hideSoftInputFromWindow(inText.getWindowToken(), 0);
         }
     }
-
+    private void setPortraitLocked(boolean isPortraitLocked) {
+        if (isPortraitLocked) {
+            Log.d("MainActivity","锁定竖屏");
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }else{
+            //isPortraitLocked=false;
+            Log.d("MainActivity","未锁定竖屏");
+            //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);//跟随系统
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);//四种屏幕方向
+        }
+    }
     private MenuItem godMenuItem;
+    private MenuItem PortraitLockedMenuItem;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -550,6 +595,19 @@ public class MainActivity extends BaseActivity {
             }
         }).setCheckable(true).setChecked(isGodMode);
         setGodMode(isGodMode);
+
+        boolean isPortraitLocked = preferences.getBoolean("PortraitLocked", true);
+        PortraitLockedMenuItem = menu.add("锁定竖屏").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                boolean isPortraitLocked = !item.isChecked();
+                item.setChecked(isPortraitLocked); // 更新菜单项的选中状态
+                preferences.edit().putBoolean("PortraitLocked", isPortraitLocked).apply();
+                setPortraitLocked(isPortraitLocked);
+                return true;
+            }
+        }).setCheckable(true).setChecked(isPortraitLocked);
+        setPortraitLocked(isPortraitLocked);
 
         menu.add("帮助").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
@@ -612,6 +670,7 @@ public class MainActivity extends BaseActivity {
                 } else {
                     Log.d("MainActivity", "打开抽屉3");
                     drawer.openDrawer(GravityCompat.START);//打开抽屉
+                    hideKeyboard();
                 }
                 break;
         }
@@ -620,5 +679,90 @@ public class MainActivity extends BaseActivity {
 
     public FrameLayout getDelete() {
         return delete;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("MainActivity", "kb_view2: " + isKeyboardVisible2(this));
+        if (isKeyboardVisible2(this)) {
+            // 确保焦点不为 null，如果没有焦点，可以手动设置一个视图获取焦点
+            View view = getCurrentFocus();
+            if (view == null) {
+                // 设置焦点到根视图，防止 getCurrentFocus() 返回 null
+                view = new View(this);
+                view.setFocusable(true);
+                view.setFocusableInTouchMode(true);
+                view.requestFocus();
+            }
+
+            // 使用 Handler 延迟执行隐藏键盘
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    hideKeyboard(); // 隐藏输入法
+                    Log.d("MainActivity", "KB_View after hide:" + isKeyboardVisible2(MainActivity.this));
+                }
+            }, 200); // 延迟200ms，确保焦点正确
+        }
+        // 从 SharedPreferences 中读取最新的小数位数
+        decimalPlaces = preferences.getInt("decimalPlaces", 10); // 默认10位
+        Log.d("MainActivity", "onResume更新小数保留 " + decimalPlaces + " 位");
+    }
+
+    public boolean isKeyboardVisible2(Activity activity) {
+        // 获取根视图
+        View rootView = activity.getWindow().getDecorView().getRootView();
+        // 获取可视区域的高度
+        Rect rect = new Rect();
+        rootView.getWindowVisibleDisplayFrame(rect);
+        // 屏幕高度
+        int screenHeight = rootView.getHeight();
+        // 可视区域高度与屏幕高度的差值
+        int heightDifference = screenHeight - rect.height();
+        // 如果高度差超过一定值（如200），说明软键盘显示了
+        Log.d("MainActivit","键盘高度"+heightDifference);
+        return heightDifference > 100;
+    }
+
+    private void calculateResult(String expression) {
+        final long t = System.currentTimeMillis();
+        final String[] value = ExpressionHandler.calculation(expression);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                outText.setTextColor(0xffbdbdbd);
+                stateText.setText("运算结束，耗时 " + (System.currentTimeMillis() - t) + " 毫秒");
+                if (value[1].equals("true")) {
+                    outText.setText(value[0]);
+                } else {
+                    Constants.setAns(value[0]);
+                    rootValue = value[0];
+                    try {
+                        BigDecimal result = new BigDecimal(rootValue);
+                        // 使用 decimalPlaces 设置精度
+                        result = result.setScale(decimalPlaces, BigDecimal.ROUND_HALF_UP);
+                        
+                        // 去掉多余的尾随零
+                        result = result.stripTrailingZeros();
+
+                        // 动态决定使用普通格式还是科学计数法
+                        String output;
+                        if (result.compareTo(new BigDecimal("1E+9")) >= 0 || result.compareTo(new BigDecimal("1E-9")) <= 0) {
+                            output = result.toString(); // 使用科学计数法
+                        } else {
+                            output = result.toPlainString(); // 普通格式
+                        }
+
+                        // 生成输出信息
+                        String resultMessage = "CalculateResult小数位数: " + decimalPlaces + "\n结果: " + output;
+                        ResultsActivity.actionStart(context, resultMessage);
+                    } catch (NumberFormatException e) {
+                        Snackbar.make(outText, "计算出错，请检查输入", Snackbar.LENGTH_SHORT).show();
+                    }
+                }
+                calcThread = null;
+            }
+        });
     }
 }

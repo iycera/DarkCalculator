@@ -79,7 +79,7 @@ public class Expression {
     private static Complex memValue = new Complex(); // for memory function
 
     public Expression(String s) {
-        text = s;
+        text = s.replaceAll("＋","+").replaceAll("－","-");
         br = new int[s.length() + 1];
         lastLB = new int[s.length() + 1];
         nextFS = new int[s.length() + 1];
@@ -361,6 +361,7 @@ public class Expression {
                 Result r1, r2;
                 switch (ci) {
                     case '*':
+                    case '×':
                     case '•':
                         interpretResult[l].submit(r, SymbolCachePair.SYMBOL_MUL, i);
                         r1 = value(l, i - 1, vX);
@@ -369,6 +370,7 @@ public class Expression {
                         if (r2.isFatalError()) return r2;
                         return new Result(Complex.mul(r1.val, r2.val));
                     case '/':
+                    case '÷':
                         interpretResult[l].submit(r, SymbolCachePair.SYMBOL_DIV, i);
                         r1 = value(l, i - 1, vX);
                         if (r1.isFatalError()) return r1;
@@ -376,6 +378,7 @@ public class Expression {
                         if (r2.isFatalError()) return r2;
                         return new Result(Complex.div(r1.val, r2.val));
                     case '!':
+                    case '！':
                         interpretResult[l].submit(r, SymbolCachePair.SYMBOL_FACT, i);
                         r1 = value(l, i - 1, vX);
                         if (r1.isFatalError()) return r1;

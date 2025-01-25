@@ -6,6 +6,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
+        <!--android:screenOrientation="fullSensor"四种屏幕方向,unspecified跟随系统-->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -26,17 +27,20 @@
             android:name=".CapitalMoneyActivity"
             android:label="大写数字"
             android:screenOrientation="portrait"
-            tools:ignore="DiscouragedApi,Instantiatable" />
+            tools:ignore="DiscouragedApi,Instantiatable"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
             android:name=".BigDecimalActivity"
             android:label="大数运算"
             android:screenOrientation="portrait"
-            tools:ignore="DiscouragedApi,Instantiatable" />
+            tools:ignore="DiscouragedApi,Instantiatable"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
             android:name=".BaseConversionActivity"
             android:label="进制转换"
             android:screenOrientation="portrait"
-            tools:ignore="DiscouragedApi,Instantiatable" />
+            tools:ignore="DiscouragedApi,Instantiatable"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
             android:name=".AboutActivity"
             android:screenOrientation="portrait"
